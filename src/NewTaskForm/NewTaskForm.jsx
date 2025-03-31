@@ -19,10 +19,6 @@ class NewTaskForm extends Component {
 
   onSubmit = (e) => {
     e.preventDefault();
-    if (this.state.description.trim().length < 3) {
-      alert("Минимум 3ри символа");
-      return;
-    }
     this.props.onAdd(this.state.description);
     this.setState({
       description: "",
