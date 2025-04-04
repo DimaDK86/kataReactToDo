@@ -71,21 +71,43 @@ class Task extends Component {
       <>
         <div>
           {isEdit ? (
-            <form onSubmit={this.handleEditSubmit}>
-              <input
-                type="text"
-                className="editToDo"
-                value={editedDescription}
-                onChange={handleEditChange}
-                onKeyDown={handleKeyDown}
-                onBlur={handleEditSubmit}
-                autoFocus
-              />
-            </form>
+            <span>
+              <form onSubmit={this.handleEditSubmit}>
+                <input
+                  type="text"
+                  className="editToDo"
+                  value={editedDescription}
+                  onChange={handleEditChange}
+                  onKeyDown={handleKeyDown}
+                  onBlur={handleEditSubmit}
+                  autoFocus
+                />
+              </form>
+            </span>
           ) : (
             <>
               <span className={classNames}>
-                <div>
+                <input
+                  className="toggle"
+                  type="checkbox"
+                  onChange={onToggleChecked}
+                  checked={status}
+                />
+                <label onClick={onToggleChecked}>
+                  <span className="title">{description}</span>
+                  <span className="description">
+                    <button className="icon icon-play"></button>
+                    <button className="icon icon-pause"></button>
+                    12:25
+                  </span>
+                  <span className="description">{distance}</span>
+                </label>
+                <button className={dn} onClick={this.editClick}></button>
+                <button
+                  className="icon icon-destroy"
+                  onClick={onDelete}
+                ></button>
+                {/* <div>
                   <input
                     className="toggle"
                     type="checkbox"
@@ -97,12 +119,7 @@ class Task extends Component {
                     <span className="description">{description}</span>
                     <span className="created">{distance}</span>
                   </label>
-                  <button className={dn} onClick={this.editClick}></button>
-                  <button
-                    className="icon icon-destroy"
-                    onClick={onDelete}
-                  ></button>
-                </div>
+                </div> */}
               </span>
             </>
           )}
