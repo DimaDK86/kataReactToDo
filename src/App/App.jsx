@@ -15,42 +15,88 @@ class App extends Component {
           created: new Date(2025, 1, 1),
           status: false,
           id: 1,
-          // isEditing: false
+          timer: { minutes: 5, seconds: 0 },
         },
         {
           description: "Editing task",
           created: new Date(2024, 6, 11),
           status: true,
           id: 2,
-          // isEditing: false
+          timer: { minutes: 0, seconds: 30 },
         },
         {
           description: "Active task",
           created: new Date(2024, 9, 11),
           status: true,
           id: 3,
-          // isEditing: false
+          timer: { minutes: 10, seconds: 0 },
         },
         {
           description: "Trarata",
           created: new Date(),
           status: false,
           id: 4,
-          // isEditing: false
+          timer: { minutes: 0, seconds: 0 },
         },
       ],
       filter: "all",
     };
     this.maxId = 5;
+    this.timerIntervals = {};
   }
+
+  componentWillUnmount() {
+    Object.values(this.timerIntervals).forEach(clearInterval);
+  }
+
+  startTimer = (id) => {
+    if (this.timerIntervals[id]) return;
+
+    this.timerIntervals[id] = setInterval(() => {
+      this.setState(({ data }) => ({
+        data: data.map((task) => {
+          if (task.id === id && !task.status) {
+            const { minutes, seconds } = task.timer;
+            if (minutes === 0 && seconds === 0) {
+              clearInterval(this.timerIntervals[id]);
+              delete this.timerIntervals[id];
+              return task;
+            }
+
+            let newMinutes = minutes;
+            let newSeconds = seconds - 1;
+
+            if (newSeconds < 0) {
+              newMinutes -= 1;
+              newSeconds = 59;
+            }
+
+            return {
+              ...task,
+              timer: { minutes: newMinutes, seconds: newSeconds },
+            };
+          }
+          return task;
+        }),
+      }));
+    }, 1000);
+  };
+
+  stopTimer = (id) => {
+    if (this.timerIntervals[id]) {
+      clearInterval(this.timerIntervals[id]);
+      delete this.timerIntervals[id];
+    }
+  };
 
   onToggleChecked = (id) => {
     this.setState(({ data }) => ({
       data: data.map((item) => {
         if (item.id === id) {
+          const newStatus = !item.status;
           return {
             ...item,
-            status: !item.status,
+            status: newStatus,
           };
         }
         return item;
@@ -59,35 +105,39 @@ class App extends Component {
   };
 
   deleteTodo = (id) => {
-    this.setState(({ data }) => {
-      return {
-        data: data.filter((item) => item.id !== id),
-      };
-    });
+    this.stopTimer(id);
+    this.setState(({ data }) => ({
+      data: data.filter((item) => item.id !== id),
+    }));
   };
 
   deleteTodoCompleted = () => {
-    this.setState(({ data }) => {
-      return {
-        data: data.filter((item) => item.status !== true),
-      };
+    this.state.data.forEach((task) => {
+      if (task.status) {
+        this.stopTimer(task.id);
+      }
     });
+    this.setState(({ data }) => ({
+      data: data.filter((item) => item.status !== true),
+    }));
   };
 
-  addToDo = (description) => {
+  addToDo = (description, minutes = 0, seconds = 0) => {
+    if (!description || description.trim() === "") return;
     const newToDo = {
-      description,
+      description: description.trim(),
       created: new Date(),
       status: false,
       id: this.maxId++,
       edit: false,
+      timer: {
+        minutes: Math.max(0, parseInt(minutes, 10) || 0),
+        seconds: Math.max(0, Math.min(59, parseInt(seconds, 10) || 0)),
+      },
     };
-    this.setState(({ data }) => {
-      const newArr = [...data, newToDo];
-      return {
-        data: newArr,
-      };
-    });
+    this.setState(({ data }) => ({
+      data: [...data, newToDo],
+    }));
   };
 
   filterItems = (items, filter) => {
@@ -108,6 +158,14 @@ class App extends Component {
         task.id === id ? { ...task, description: newDescription } : task,
       ),
     }));
+  };
+
+  onToggleTimer = (id, isRunning) => {
+    if (isRunning) {
+      this.startTimer(id);
+    } else {
+      this.stopTimer(id);
+    }
   };
 
   render() {
@@ -137,6 +195,7 @@ class App extends Component {
           filter={filter}
           onFilterSelect={onFilterSelect}
           onEditItem={this.onEditItem}
+          onToggleTimer={this.onToggleTimer}
         />
       </section>
     );

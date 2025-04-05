@@ -1,6 +1,4 @@
-import React from "react";
-import { Component } from "react";
-
+import React, { Component } from "react";
 import "./NewTaskForm.css";
 
 class NewTaskForm extends Component {
@@ -8,48 +6,64 @@ class NewTaskForm extends Component {
     super(props);
     this.state = {
       description: "",
+      minutes: "",
+      seconds: "",
     };
   }
 
-  onValue = (e) => {
+  handleInputChange = (e) => {
     this.setState({
       [e.target.name]: e.target.value,
     });
   };
 
-  onSubmit = (e) => {
+  handleSubmit = (e) => {
     e.preventDefault();
-    this.props.onAdd(this.state.description);
+    const { description, minutes, seconds } = this.state;
+    if (!description.trim()) return;
+    const mins = parseInt(minutes) || 0;
+    const secs = parseInt(seconds) || 0;
+    this.props.onAdd(description, mins, secs);
     this.setState({
       description: "",
+      minutes: "",
+      seconds: "",
     });
   };
 
   render() {
-    const { description } = this.state;
-
     return (
       <header className="header">
         <h1>todos</h1>
-        <form className="new-todo-form" onSubmit={this.onSubmit}>
+        <form className="new-todo-form" onSubmit={this.handleSubmit}>
           <input
             className="new-todo"
             placeholder="What needs to be done?"
             autoFocus
-            onChange={this.onValue}
             name="description"
-            value={description}
+            value={this.state.description}
+            onChange={this.handleInputChange}
           />
           <input
             className="new-todo-form__timer"
             placeholder="Min"
             type="number"
+            name="minutes"
+            value={this.state.minutes}
+            onChange={this.handleInputChange}
+            min="0"
           />
           <input
             className="new-todo-form__timer"
             placeholder="Sec"
             type="number"
+            name="seconds"
+            value={this.state.seconds}
+            onChange={this.handleInputChange}
+            min="0"
+            max="59"
           />
+          <button type="submit" style={{ display: "none" }} />
         </form>
       </header>
     );

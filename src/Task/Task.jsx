@@ -9,7 +9,14 @@ class Task extends Component {
     this.state = {
       isEdit: false,
       editedDescription: props.description,
+      isRunning: false,
     };
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.status !== this.props.status) {
+      this.setState({ isRunning: !this.props.status });
+    }
   }
 
   editClick = () => {
@@ -45,17 +52,36 @@ class Task extends Component {
     }
   };
 
+  formatTime = (minutes, seconds) => {
+    return `${String(minutes).padStart(2, "0")}
+    :${String(seconds).padStart(2, "0")}`;
+  };
+
+  handlePlay = () => {
+    const { id, onToggleTimer } = this.props;
+    this.setState({ isRunning: true });
+    if (onToggleTimer) {
+      onToggleTimer(id, true);
+    }
+  };
+
+  handlePause = () => {
+    const { id, onToggleTimer } = this.props;
+    this.setState({ isRunning: false });
+    if (onToggleTimer) {
+      onToggleTimer(id, false);
+    }
+  };
+
   render() {
-    const { description, created, onDelete, onToggleChecked, status } =
+    const { description, created, onDelete, onToggleChecked, status, timer } =
       this.props;
 
-    const { editedDescription, isEdit } = this.state;
-
-    const { handleEditChange, handleKeyDown, handleEditSubmit } = this;
+    const { editedDescription, isEdit, isRunning } = this.state;
 
     const distance = formatDistanceToNow(created, {
-      addSuffix: true, // Добавляем "назад" или "через"
-      locale: ru, // Используем русскую локаль
+      addSuffix: true,
+      locale: ru,
     });
 
     let classNames = "";
@@ -63,9 +89,9 @@ class Task extends Component {
     if (status) {
       classNames = "completed";
       dn = "hidden";
-    } else if (status === false) {
-      classNames = "view";
     }
+
+    const timerDisplay = this.formatTime(timer.minutes, timer.seconds);
 
     return (
       <>
@@ -77,9 +103,9 @@ class Task extends Component {
                   type="text"
                   className="editToDo"
                   value={editedDescription}
-                  onChange={handleEditChange}
-                  onKeyDown={handleKeyDown}
-                  onBlur={handleEditSubmit}
+                  onChange={this.handleEditChange}
+                  onKeyDown={this.handleKeyDown}
+                  onBlur={this.handleEditSubmit}
                   autoFocus
                 />
               </form>
@@ -93,12 +119,22 @@ class Task extends Component {
                   onChange={onToggleChecked}
                   checked={status}
                 />
-                <label onClick={onToggleChecked}>
-                  <span className="title">{description}</span>
+                <label>
+                  <span onClick={onToggleChecked} className="title">
+                    {description}
+                  </span>
                   <span className="description">
-                    <button className="icon icon-play"></button>
-                    <button className="icon icon-pause"></button>
-                    12:25
+                    <button
+                      className="icon icon-play"
+                      onClick={this.handlePlay}
+                      disabled={isRunning || status}
+                    />
+                    <button
+                      className="icon icon-pause"
+                      onClick={this.handlePause}
+                      disabled={!isRunning || status}
+                    />
+                    <span className="timer">{timerDisplay}</span>
                   </span>
                   <span className="description">{distance}</span>
                 </label>
@@ -107,19 +143,6 @@ class Task extends Component {
                   className="icon icon-destroy"
                   onClick={onDelete}
                 ></button>
-                {/* <div>
-                  <input
-                    className="toggle"
-                    type="checkbox"
-                    onChange={onToggleChecked}
-                    checked={status}
-                  />
-
-                  <label onClick={onToggleChecked}>
-                    <span className="description">{description}</span>
-                    <span className="created">{distance}</span>
-                  </label>
-                </div> */}
               </span>
             </>
           )}

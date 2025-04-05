@@ -11,6 +11,7 @@ function TaskList({
   filter,
   onFilterSelect,
   onEditItem,
+  onToggleTimer,
 }) {
   const elements = data.map((item) => {
     return (
@@ -19,9 +20,8 @@ function TaskList({
           {...item}
           onDelete={() => onDelete(item.id)}
           onEditItem={onEditItem}
-          onToggleChecked={() => {
-            onToggleChecked(item.id);
-          }}
+          onToggleChecked={() => onToggleChecked(item.id)}
+          onToggleTimer={onToggleTimer}
         />
       </li>
     );
